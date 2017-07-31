@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 Author: Luis Padua  
 Date: July, 30th - 2017
 
@@ -16,8 +11,29 @@ As preprocessing steps, I considered the following:
 - Using the library dplyr to let the data as a tbl_df  
 - Convert the string date column to a Date Variable Time
 
-```{r, results='hide'}
+
+```r
 library(dplyr)
+```
+
+```
+## 
+## Attaching package: 'dplyr'
+```
+
+```
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+```
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
 data <- read.csv(unz("activity.zip", "activity.csv"))
 data$date <- as.Date(data$date)
 data <- tbl_df(data)
@@ -25,21 +41,28 @@ data <- tbl_df(data)
 
 ## What is mean total number of steps taken per day?
 
-```{r}
+
+```r
 stepbyday <- data %>%
                 group_by(date) %>%
                 summarise(steps = sum(steps))
 hist(stepbyday$steps, breaks = 10,
      main = "Histogram of Total Number of Steps taken each day",
      xlab = "Total Steps taken each day")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-2-1.png)<!-- -->
+
+```r
 step_mean <- mean(stepbyday$steps, na.rm = TRUE)
 step_median <- median(stepbyday$steps, na.rm = TRUE)
 ```
-The mean total number of steps taken per day is `r format(round(step_mean, 1), nsmall = 1)`.  
-And its median is `r step_median`.
+The mean total number of steps taken per day is 10766.2.  
+And its median is 10765.
 
 ## What is the average daily activity pattern?
-```{r}
+
+```r
 avgstepbyinterval <- data %>%
                 group_by(interval) %>%
                 summarise(avgsteps = mean(steps, na.rm = TRUE))
@@ -75,22 +98,29 @@ plot(avgstepbyinterval$interval, avgstepbyinterval$avgsteps,
      axes = FALSE)
 axis(1, at = seq(0, 2400, 100), labels = labeltime)
 axis(2, at = seq(0, 210,50))
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
+
+```r
 maxInterval <- avgstepbyinterval$interval[which.max(avgstepbyinterval$avgsteps)]
 ```
-The 5-minute interval, on average across all the days in the dataset, that contains the maximum number of steps is `r maxInterval`
+The 5-minute interval, on average across all the days in the dataset, that contains the maximum number of steps is 835
 
 
 ## Imputing missing values
 
-```{r}
+
+```r
 arrayNA <- is.na(data$steps)
 numNA <- sum(arrayNA)
 ```
-The total number of invalid observations is `r numNA`  
+The total number of invalid observations is 2304  
 
 The strategie used to replace the NA value is to use the mean for that specific interval from the whole dataset.
 
-```{r}
+
+```r
 data_woNA <- data
 for(i in 1:length(data$steps)) {
         if(arrayNA[i] == TRUE) {
@@ -100,23 +130,30 @@ for(i in 1:length(data$steps)) {
 ```
 
 Then, let's re-do the histogram of the steps by day.  
-```{r}
+
+```r
 stepbyday_woNA <- data_woNA %>%
                 group_by(date) %>%
                 summarise(steps = sum(steps))
 hist(stepbyday_woNA$steps, breaks = 10,
      main = "Histogram of Total Number of Steps taken each day",
      xlab = "Total Steps taken each day")
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+
+```r
 step_mean_woNA <- mean(stepbyday_woNA$steps)
 step_median_woNA <- median(stepbyday_woNA$steps)
 ```
-The mean total number of steps taken per day is `r format(round(step_mean_woNA, 1), nsmall = 1)`.  
-And its median is `r format(round(step_median_woNA, 1), nsmall = 1)`.  
+The mean total number of steps taken per day is 10766.2.  
+And its median is 10766.2.  
 Removing the NA values has an impact on the median calculation. Without NA values, median has the same value of mean.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
-```{r}
+
+```r
 data_woNA$weekday <- factor(weekdays(data_woNA$date) %in% c("Saturday", "Sunday"), 
          levels=c(FALSE, TRUE), labels=c('weekday', 'weekend') )
 avgstep_weekend <- filter(data_woNA, as.integer(weekday) == 2) %>%
@@ -147,4 +184,6 @@ title(xlab = "Time Interval during the Day",
       ylab = "Average Steps",
       outer = TRUE, line = 3)
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
 
